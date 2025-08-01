@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruleta de la Sostenibilidad - Programas</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f0f4f3;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 28px;
+      color: #2e8b57;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .ruleta-container {
+      position: relative;
+      width: 350px;
+      height: 350px;
+    }
+    .ruleta {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 4px solid #444;
+      background: conic-gradient(
+        #FF7F50 0% 14.28%, 
+        #FFD700 14.28% 28.56%, 
+        #90EE90 28.56% 42.84%, 
+        #20B2AA 42.84% 57.12%, 
+        #87CEEB 57.12% 71.4%, 
+        #9370DB 71.4% 85.68%, 
+        #FFA07A 85.68% 100%
+      );
+      transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    .flecha {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 30px solid red;
+      z-index: 10;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #2e8b57;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #resultado {
+      margin-top: 20px;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    /* Animaciones y tarjetas */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .salio {
+      font-size: 1.3em;
+      color: #d9534f;
+      font-weight: bold;
+      animation: fadeIn 1s forwards;
+      margin-bottom: 10px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-left: 6px solid #2e8b57;
+      animation: fadeIn 1s forwards;
+    }
+    .dato { 
+      font-weight: bold; 
+      color: #2e7d32;
+      font-size: 1.1em;
+      opacity: 0;
+      animation: fadeIn 1.5s forwards;
+    }
+    .pregunta {
+      margin-top: 15px;
+      color: #000;
+      font-size: 1em;
+      font-style: italic;
+      opacity: 0;
+      animation: fadeIn 2s forwards;
+      animation-delay: 1.5s;
+    }
+    .respuesta {
+      margin-top: 10px;
+      font-size: 0.95em;
+      color: #444;
+      display: none;
+      animation: fadeIn 1.5s forwards;
+    }
+    .ver-respuesta {
+      margin-top: 15px;
+      padding: 8px 16px;
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .ver-respuesta:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>¡Gira la Ruleta de la Sostenibilidad!</h1>
+  <div class="ruleta-container">
+    <div class="flecha"></div>
+    <div class="ruleta" id="ruleta"></div>
+  </div>
+  <button onclick="girar()">Girar Ruleta</button>
+  <div id="resultado"></div>
+
+  <script>
+    const ruleta = document.getElementById('ruleta');
+    const resultado = document.getElementById('resultado');
+
+    const secciones = [
+      "POE",
+      "PURA",
+      "Cumple tu papel",
+      "PGIRASA",
+      "Movilidad Sostenible",
+      "Educación Ambiental",
+      "Cambio Climático y Salud"
+    ];
+
+    const datosProgramas = {
+      "PURA": [
+        { dato: "En 2024, La clínica Imbanaco usó 11 330 m³ de agua freática para torres de enfriamiento, evitando 1,1 toneladas de CO₂ y ahorrando 5,8 m³ de agua potable.", pregunta: "¿Qué hace este ahorro de agua por el clima y la salud?", respuesta: "Reduce extracción de agua potable, disminuye emisiones de CO₂ y protege recursos hídricos." },
+        { dato: "El no arrojar sustancias químicas o papel higiénico a los sanitarios previene la contaminación del agua y posibles taponamientos.", pregunta: "¿Que tipo de residuos no debo desechar en sanitarios y grifos?", respuesta: "Restos de medicamentos, sustancias quimicas, papel higiénico, toallas de manos." },
+        { dato: "Millones de personas en la Región de las Américas aún carecen de una fuente adecuada de agua potable.", pregunta: "¿Nombra 2 buenas prácticas para el ahorro de agua en tu servicio?", respuesta: "Reportar fugas o daños a Infraestructura Hospitalaria, educar a mis compañeros y pacientes sobre hacer el uso racional del agua." }
+      ],
+      "POE": [
+        { dato: "El 40 % del consumo energético hospitalario es atribuido a los sistemas de climatización.", pregunta: "¿Qué estrategia reduciría ese consumo en Imbanaco?", respuesta: "Mejorar aislantes, automatizar climatización y apagar equipos en horarios no críticos." },
+        { dato: "¿Sabias que? la eficiencia energética en el sector salud reduce costos y huella de carbono.", pregunta: "¿Cómo ayudaría esto a la sostenibilidad del hospital?", respuesta: "Reduce consumo eléctrico, mantiene operaciones sostenibles y libera recursos para atención clínica." },
+        { dato: "El consumo de energía sigue siendo la principal causa del cambio climático, ya que representa alrededor del 60 % de las emisiones mundiales de gases de efecto invernadero.", pregunta: "¿Qué beneficios ambientales tiene la clínica al contar con energia certificada como renovable, hacer usar de luminación LED y sensores de movimiento?", respuesta: "Ahorro económico, menor huella de carbono." }
+      ],
+      "Cumple tu papel": [
+        { dato: "La clínica Imbanaco redujo 8 845 resmas de papel entre 2019 y 2024, evitando 20,5 toneladas de CO₂.", pregunta: "¿Qué significan esos ahorros para el medioambiente?", respuesta: "Menos tala de árboles, menor emisión de CO₂ y ahorro en almacenamiento físico." },
+        { dato: "Las politicas 'Cero Papel' logran reducciones del 55 % en instituciones.", pregunta: "¿Cómo puede Imbanaco impulsar el uso digital del papel?", respuesta: "Con firma electrónica, facturas digitales y agendas electrónicas internas." },
+        { dato: "Reutilizar hojas impresas puede reducir en 5–10 % el consumo de papel.", pregunta: "¿Qué práctica simple podría implementar cada colaborador?", respuesta: "Imprimir a doble cara, reutilizar papel y fomentar el archivo digital." }
+      ],
+      "PGIRASA": [
+        { dato: "El PGIRASA minimiza impactos y riesgos en la gestión de residuos hospitalarios.", pregunta: "¿Por qué es clave que Imbanaco actualice su plan PGIRASA?", respuesta: "Cumple normas, reduce riesgos sanitarios y mejora disposición final." },
+        { dato: "Capacitar en segregación adecuada de residuos reduce incidentes biológicos.", pregunta: "¿Qué beneficios trae la capacitación continua en gestión de residuos?", respuesta: "Menos accidentes, mejores controles sanitarios y mayor seguridad para todos." },
+        { dato: "Segregar desde la fuente disminuye costos de disposición final hasta un 20 %.", pregunta: "¿Cómo influye esto en costos operativos del hospital?", respuesta: "Menos residuos peligrosos mezclados reduce tarifas de tratamiento y mejora eficiencia." }
+      ],
+      "Movilidad Sostenible": [
+        { dato: "La movilidad sostenible disminuye enfermedades respiratorias y cardiovasculares.", pregunta: "¿Cómo impacta en la salud de colaboradores fomentar modos activos de transporte?", respuesta: "Mejora la condición física, reduce sedentarismo y baja exposición a contaminación." },
+        { dato: "La app Try My Ride permite moverse de forma sostenible, mejorar la calidad del aire y obtener beneficios como descuentos en parqueadero o Puntos Colombia.", pregunta: "¿Qué motiva al personal a usar apps como Try My Ride?", respuesta: "Reducen huella de carbono, generan recompensas económicas y fomentan hábitos más saludables." },
+        { dato: "El transporte público o bicicleta reduce emisiones CO₂ y mejora la calidad del aire.", pregunta: "¿Qué impacto tendría si el 30 % de colaboradores cambiara a modos sostenibles?", respuesta: "Menor huella de carbono institucional y comunidad operativa más saludable." }
+      ],
+      "Educación Ambiental": [
+        { dato: "La clinica Imbanaco promueve políticas ambientales entre pacientes y visitantes.", pregunta: "¿Por qué involucrar a pacientes y familiares en prácticas ambientales?", respuesta: "Para multiplicar buenas prácticas fuera del hospital y reforzar cultura ambiental." },
+        { dato: "Gracias a la Educación Ambiental, se dan a conocer los requerimientos que debemos cumplir.", pregunta: "¿Si desconozco las politicas, programas y la normatividad legal ambiental, a que tipo de riesgos nos exponemos?", respuesta: "Riesgo ambiental, económico, reputacional, y al cierre provisional o total de servicios." },
+        { dato: "En un mundo cada vez más consciente de los problemas ambientales, la educación ambiental se ha convertido en una herramienta crucial para abordar los desafíos que enfrenta nuestro planeta.", pregunta: "¿Cómo fomentas y fortaleces la educación ambiental en tu servicio?", respuesta: "Participando de las capacitaciones del área de Gestión Ambiental, realizando anualmente el curso virtual y educando al paciente en buenas practicas ambientales." }
+      ],
+      "Cambio Climático y Salud": [
+        { dato: "En 2023, las muertes por calor en mayores de 65 años aumentaron un 167 % frente a los años 90.", pregunta: "¿Por qué la población mayor es la más vulnerable al calor?", respuesta: "Porque su capacidad de termorregulación es menor y padecen más enfermedades crónicas." },
+        { dato: "El cambio climático podría causar 250 000 muertes anuales entre 2030 y 2050 por desnutrición, malaria, diarrea y estrés térmico.", pregunta: "¿Qué estrategias locales podrían reducir estas muertes?", respuesta: "Planes de prevención sanitaria, alerta temprana y mejores servicios de salud." },
+        { dato: "El 58 % de las enfermedades infecciosas conocidas han sido agravadas por eventos climáticos como inundaciones o sequías.", pregunta: "¿Cómo podemos fortalecer la vigilancia en salud ante enfermedades emergentes?", respuesta: "A través de monitoreo climático y refuerzo de laboratorios y protocolos." },
+        { dato: "Aumentos de temperatura nocturna afectan el sueño, sobre todo en adultos mayores.", pregunta: "¿Cómo afecta la falta de sueño a la salud?", respuesta: "Debilita el sistema inmunológico y aumenta el riesgo de enfermedades cardiovasculares." },
+        { dato: "Cada aumento de 1 °C en la temperatura mensual incrementa el suicidio 0,7 % en EE. UU. y 3,1 % en México.", pregunta: "¿Qué puede ayudar a reducir la eco-ansiedad relacionada con el clima?", respuesta: "Apoyo psicológico, educación ambiental y participación en soluciones." },
+        { dato: "Eliminar el carbón y promover transporte activo podría prevenir 7 millones de muertes prematuras por contaminación del aire cada año.", pregunta: "¿Qué medidas personales ayudan a reducir la exposición a la contaminación del aire?", respuesta: "Usar transporte sostenible, evitar quemas y mantener plantas en casa." },
+        { dato: "La clínica esta comprometida a reducir el consumo de gases anestésicos contaminantes como el desflurano, priorizando anestesia intravenosa.", pregunta: "¿Qué beneficio tiene este cambio a la salud y al clima?", respuesta: "Menor emisión de gases efecto invernadero y mejor calidad del aire del hospital." },
+      ]
+    };
+
+    let angulo = 0;
+
+    function girar() {
+      const giro = Math.floor(Math.random() * 360) + 1800;
+      angulo += giro;
+      ruleta.style.transform = `rotate(${angulo}deg)`;
+      setTimeout(() => {
+        const anguloFinal = (angulo % 360);
+        const tamanoSeccion = 360 / secciones.length;
+        let indice = Math.floor((360 - anguloFinal + tamanoSeccion / 2) / tamanoSeccion) % secciones.length;
+        const tema = secciones[indice];
+        mostrarDatoPregunta(tema);
+      }, 4000);
+    }
+
+    function mostrarDatoPregunta(tema) {
+      const items = datosProgramas[tema];
+      if (items) {
+        const item = items[Math.floor(Math.random() * items.length)];
+        resultado.innerHTML = `
+          <div class="salio">¡Salió: ${tema}!</div>
+          <div class="card">
+            <div class="dato">${item.dato}</div>
+            <div class="pregunta">${item.pregunta}</div>
+            <button class="ver-respuesta" onclick="mostrarRespuesta('${item.respuesta}')">Ver respuesta</button>
+            <div class="respuesta" id="respuesta-box"></div>
+          </div>
+        `;
+      } else {
+        resultado.textContent = "¡Salió: " + tema + "!";
+      }
+    }
+
+    function mostrarRespuesta(respuesta) {
+      const respuestaBox = document.getElementById('respuesta-box');
+      if (respuestaBox) {
+        respuestaBox.textContent = "Respuesta: " + respuesta;
+        respuestaBox.style.display = 'block';
+      }
+      const boton = document.querySelector('.ver-respuesta');
+      if (boton) boton.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
